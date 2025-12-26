@@ -1,0 +1,86 @@
+# PYTHON
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# ENVIRONMENT VARIABLES
+
+.env
+.env.local
+.env.*.local
+
+# LOGS
+
+*.log
+logs/
+bigdata_app.log
+
+# DATABASE
+
+*.db
+*.sqlite
+*.sqlite3
+
+# OUTPUT
+
+# Resilt files (For testing)
+output/
+results.json
+results.xml
+test_results.*
+
+# IDE / EDITOR
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# PyCharm
+.idea/
+*.iml
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# OPERATING SYSTEM
+
+# Windows
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Linux
+*~
+
+# PROJECT SPECIFIC
+
+*.tmp
+*.temp
+*.bak
