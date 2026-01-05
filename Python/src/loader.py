@@ -7,22 +7,8 @@ logger = logging.getLogger(__name__)
 
 
 class FileLoader:
-    """
-    JSON fayllarni o'qish va tekshirish uchun klass.
-    SOLID: Single Responsibility - faqat fayl operatsiyalari.
-    """
-    
     @staticmethod
     def load_json(file_path: str) -> List[Dict[str, Any]]:
-        """
-        JSON faylni o'qish.
-        
-        Args:
-            file_path: Fayl yo'li
-            
-        Returns:
-            JSON ma'lumotlar ro'yxati
-        """
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
@@ -41,15 +27,6 @@ class FileLoader:
     
     @staticmethod
     def validate_rooms(rooms: List[Dict[str, Any]]) -> bool:
-        """
-        Rooms ma'lumotlarini tekshirish.
-        
-        Args:
-            rooms: Xonalar ro'yxati
-            
-        Returns:
-            True - agar to'g'ri bo'lsa
-        """
         required_fields = ['id', 'name']
         
         for idx, room in enumerate(rooms):
@@ -67,15 +44,6 @@ class FileLoader:
     
     @staticmethod
     def validate_students(students: List[Dict[str, Any]]) -> bool:
-        """
-        Students ma'lumotlarini tekshirish.
-        
-        Args:
-            students: Talabalar ro'yxati
-            
-        Returns:
-            True - agar to'g'ri bo'lsa
-        """
         required_fields = ['id', 'name', 'birthday', 'sex', 'room']
         
         for idx, student in enumerate(students):
@@ -107,38 +75,14 @@ class FileLoader:
 
 
 class DataTransformer:
-    """
-    Ma'lumotlarni database formatiga o'tkazish uchun klass.
-    SOLID: Single Responsibility - faqat transformatsiya.
-    """
-    
     @staticmethod
     def transform_rooms(rooms: List[Dict[str, Any]]) -> List[tuple]:
-        """
-        Rooms ma'lumotlarini tuple formatiga o'tkazish.
-        
-        Args:
-            rooms: Xonalar ro'yxati
-            
-        Returns:
-            Tuple formatdagi ma'lumotlar
-        """
         return [(room['id'], room['name']) for room in rooms]
     
     @staticmethod
     def transform_students(students: List[Dict[str, Any]]) -> List[tuple]:
-        """
-        Students ma'lumotlarini tuple formatiga o'tkazish.
-        
-        Args:
-            students: Talabalar ro'yxati
-            
-        Returns:
-            Tuple formatdagi ma'lumotlar
-        """
         transformed = []
         for student in students:
-            # Birthday ni datetime ga o'tkazish
             birthday = datetime.fromisoformat(student['birthday'])
             
             transformed.append((
@@ -146,7 +90,7 @@ class DataTransformer:
                 student['name'],
                 birthday,
                 student['sex'],
-                student['room']  # Bu room_id bo'ladi
+                student['room'] 
             ))
         
         return transformed

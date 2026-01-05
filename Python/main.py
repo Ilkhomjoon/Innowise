@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
 """
-BigData Python Module - Final Project
-Muallif: [Ismingiz]
-Sana: 2024
-
 Bu dastur rooms va students ma'lumotlarini PostgreSQL bazasiga yuklaydi
 va turli statistik hisoblarni chiqaradi.
 """
@@ -34,16 +30,7 @@ logger = logging.getLogger(__name__)
 
 
 class BigDataApp:
-    """
-    Asosiy application klassi.
-    SOLID: Single Responsibility - faqat dastur oqimini boshqarish.
-    """
-    
     def __init__(self, config: dict):
-        """
-        Args:
-            config: Database va boshqa sozlamalar
-        """
         self.config = config
         self.db_manager: Optional[DatabaseManager] = None
         self.data_loader: Optional[DataLoader] = None
@@ -51,12 +38,10 @@ class BigDataApp:
         self.index_manager: Optional[IndexManager] = None
     
     def initialize(self) -> None:
-        """Dasturni ishga tushirish."""
         logger.info("=" * 70)
         logger.info("BIGDATA APPLICATION ISHGA TUSHDI")
         logger.info("=" * 70)
-        
-        # Database Manager yaratish
+
         self.db_manager = DatabaseManager(
             host=self.config['db_host'],
             database=self.config['db_name'],
@@ -65,16 +50,13 @@ class BigDataApp:
             port=self.config['db_port']
         )
         
-        # Database ga ulanish
         self.db_manager.connect()
         
-        # Boshqa komponentlarni yaratish
         self.data_loader = DataLoader(self.db_manager)
         self.query_executor = QueryExecutor(self.db_manager)
         self.index_manager = IndexManager(self.db_manager)
     
     def setup_schema(self) -> None:
-        """Database schema yaratish."""
         logger.info("Schema yaratish boshlandi...")
         
         schema_file = 'sql/schema.sql'
@@ -84,45 +66,26 @@ class BigDataApp:
             logger.warning(f"Schema fayl topilmadi: {schema_file}")
     
     def load_data(self, rooms_path: str, students_path: str) -> None:
-        """
-        Ma'lumotlarni yuklash.
-        
-        Args:
-            rooms_path: rooms.json fayl yo'li
-            students_path: students.json fayl yo'li
-        """
-        # Fayllar mavjudligini tekshirish
         if not os.path.exists(rooms_path):
             raise FileNotFoundError(f"Rooms fayli topilmadi: {rooms_path}")
         
         if not os.path.exists(students_path):
             raise FileNotFoundError(f"Students fayli topilmadi: {students_path}")
         
-        # Ma'lumotlarni yuklash
         stats = self.data_loader.load_all(rooms_path, students_path)
         
         logger.info(f"Yuklandi: {stats['rooms']} xona, {stats['students']} talaba")
     
     def create_indexes(self) -> None:
-        """Indekslarni yaratish."""
         self.index_manager.create_indexes()
     
     def execute_queries(self) -> dict:
-        """Barcha so'rovlarni bajarish."""
         return self.query_executor.execute_all_queries()
     
     def save_results(self, results: dict, output_format: str, output_file: str) -> None:
-        """
-        Natijalarni saqlash.
         
-        Args:
-            results: Query natijalari
-            output_format: 'json' yoki 'xml'
-            output_file: Chiqish fayli yo'li
-        """
         formatter = ResultFormatter()
         
-        # Formatga ko'ra konvertatsiya qilish
         if output_format.lower() == 'json':
             content = formatter.to_json(results)
         elif output_format.lower() == 'xml':
@@ -130,41 +93,25 @@ class BigDataApp:
         else:
             raise ValueError(f"Noto'g'ri format: {output_format}. 'json' yoki 'xml' bo'lishi kerak.")
         
-        # Faylga saqlash
         formatter.save_to_file(content, output_file)
         
-        # Konsolda xulosani ko'rsatish
         formatter.print_summary(results)
         
         logger.info(f"Natijalar saqlandi: {output_file}")
     
     def run(self, rooms_path: str, students_path: str, output_format: str = 'json') -> None:
-        """
-        Dasturni to'liq ishga tushirish.
-        
-        Args:
-            rooms_path: rooms.json fayl yo'li
-            students_path: students.json fayl yo'li
-            output_format: Chiqish formati ('json' yoki 'xml')
-        """
         try:
-            # 1. Initialization
             self.initialize()
             
-            # 2. Schema yaratish (agar kerak bo'lsa)
             if self.config.get('create_schema', False):
                 self.setup_schema()
             
-            # 3. Ma'lumotlarni yuklash
             self.load_data(rooms_path, students_path)
             
-            # 4. Indekslarni yaratish
             self.create_indexes()
             
-            # 5. So'rovlarni bajarish
             results = self.execute_queries()
             
-            # 6. Natijalarni saqlash
             output_file = f"results.{output_format}"
             self.save_results(results, output_format, output_file)
             
@@ -177,18 +124,15 @@ class BigDataApp:
             raise
         
         finally:
-            # Database dan uzilish
             if self.db_manager:
                 self.db_manager.disconnect()
     
     def cleanup(self) -> None:
-        """Tozalash (test uchun)."""
         if self.db_manager:
             self.db_manager.clear_tables()
 
 
 def parse_arguments():
-    """Command line argumentlarini parse qilish."""
     parser = argparse.ArgumentParser(
         description='BigData Python Module - Rooms va Students ma\'lumotlarini yuklash va tahlil qilish',
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -239,7 +183,7 @@ Misollar:
         '--db-name',
         type=str,
         default='students_db',
-        help='Database nomi (default: bigdata_db)'
+        help='Database nomi (default: students_db)'
     )
     
     parser.add_argument(
@@ -252,7 +196,7 @@ Misollar:
     parser.add_argument(
         '--db-password',
         type=str,
-        default='postgres',
+        default='001106',
         help='Database parol (default: postgres)'
     )
     
@@ -267,11 +211,8 @@ Misollar:
 
 
 def main():
-    """Asosiy funksiya."""
-    # Argumentlarni parse qilish
     args = parse_arguments()
     
-    # Konfiguratsiya yaratish
     config = {
         'db_host': args.db_host,
         'db_name': args.db_name,
@@ -281,7 +222,6 @@ def main():
         'create_schema': args.create_schema
     }
     
-    # Dasturni ishga tushirish
     app = BigDataApp(config)
     app.run(
         rooms_path=args.rooms,

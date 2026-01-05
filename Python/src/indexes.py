@@ -5,20 +5,10 @@ logger = logging.getLogger(__name__)
 
 
 class IndexManager:
-    """
-    Indekslarni boshqarish uchun klass.
-    SOLID: Single Responsibility - faqat indeks operatsiyalari.
-    """
-    
     def __init__(self, db_manager: DatabaseManager):
-        """
-        Args:
-            db_manager: DatabaseManager obyekti
-        """
         self.db_manager = db_manager
     
     def create_indexes(self) -> None:
-        """Barcha indekslarni yaratish."""
         logger.info("=" * 50)
         logger.info("INDEKSLARNI YARATISH BOSHLANDI")
         logger.info("=" * 50)
@@ -64,7 +54,6 @@ class IndexManager:
         logger.info("=" * 50)
     
     def drop_indexes(self) -> None:
-        """Barcha indekslarni o'chirish."""
         logger.info("Indekslarni o'chirish boshlandi...")
         
         indexes = [
@@ -97,7 +86,6 @@ class IndexManager:
         return self.db_manager.fetch_all(query)
     
     def print_index_statistics(self) -> None:
-        """Indekslar statistikasini ko'rsatish."""
         print("\n" + "=" * 60)
         print("INDEKSLAR STATISTIKASI")
         print("=" * 60)
