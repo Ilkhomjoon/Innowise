@@ -1,17 +1,15 @@
 import os
+import logging
 import pandas as pd
 from datetime import datetime
-from airflow import DAG
-from airflow.sensors.filesystem import FileSensor
-from airflow.operators.python import PythonOperator, BranchPythonOperator
+from airflow.decorators import dag, task
 from airflow.operators.bash import BashOperator
+from airflow.sensors.filesystem import FileSensor
+from airflow.operators.python import BranchPythonOperator
 from airflow.utils.task_group import TaskGroup
-from airflow.datasets import Dataset
+from config import RAW_FILE_PATH, PROCESSED_FILE_PATH, processed_dataset
 
-RAW_FILE_PATH = '/opt/airflow/data/airflow_data.csv'
-PROCESSED_FILE_PATH = '/opt/airflow/data/processed_data.csv'
-
-processed_dataset = Dataset(f"file://{PROCESSED_FILE_PATH}")
+log = logging.getLogger(__name__)
 
 def check_file_empty():
     if not os.path.exists(RAW_FILE_PATH) or os.path.getsize(RAW_FILE_PATH) == 0:
@@ -21,22 +19,28 @@ def check_file_empty():
         return 'log_empty_file'
     return 'processing_tasks.replace_nulls'
 
-def replace_nulls_func():
-    df = pd.read_csv(RAW_FILE_PATH)
+@task()
+def replace_nulls_func(raw_path: str, processed_path: str):
+    df = pd.read_csv(raw_path)
     df.replace('null', '-', inplace=True)
     df.fillna('-', inplace=True)
-    df.to_csv(PROCESSED_FILE_PATH, index=False)
+    df.to_csv(processed_path, index=False)
+    log.info("Null values replaced. Output written to %s", processed_path)
 
-def sort_data_func():
-    df = pd.read_csv(PROCESSED_FILE_PATH)
+@task()
+def sort_data_func(processed_path: str):
+    df = pd.read_csv(processed_path)
     df['created_date'] = pd.to_datetime(df['created_date'])
     df.sort_values('created_date', inplace=True)
-    df.to_csv(PROCESSED_FILE_PATH, index=False)
+    df.to_csv(processed_path, index=False)
+    log.info("Data sorted by created_date in %s", processed_path)
 
-def clean_content_func():
-    df = pd.read_csv(PROCESSED_FILE_PATH)
+@task(outlets=[processed_dataset])
+def clean_content_func(processed_path: str):
+    df = pd.read_csv(processed_path)
     df['content'] = df['content'].astype(str).str.replace(r'[^\w\s.,!?\'"-]', '', regex=True)
-    df.to_csv(PROCESSED_FILE_PATH, index=False)
+    df.to_csv(processed_path, index=False)
+    log.info("Content cleaned and saved to %s", processed_path)
 
 with DAG(
     dag_id='1_data_processing_dag',
@@ -59,19 +63,13 @@ with DAG(
 
     log_empty = BashOperator(
         task_id='log_empty_file',
-        bash_command='echo "Fayl bo\'sh! Ma\'lumot topilmadi."'
+        bash_command='echo "File is empty! No data found."'
     )
 
     with TaskGroup("processing_tasks") as processing_group:
-        replace_nulls = PythonOperator(task_id='replace_nulls', python_callable=replace_nulls_func)
-        sort_data = PythonOperator(task_id='sort_data', python_callable=sort_data_func)
-        clean_content = PythonOperator(
-            task_id='clean_content', 
-            python_callable=clean_content_func,
-            outlets=[processed_dataset]
-        )
-        replace_nulls >> sort_data >> clean_content
+        step1 = replace_nulls_func(RAW_FILE_PATH, PROCESSED_FILE_PATH)
+        step2 = sort_data_func(PROCESSED_FILE_PATH)
+        step3 = clean_content_func(PROCESSED_FILE_PATH)
+        step1 >> step2 >> step3
 
-    wait_for_file >> check_empty
-    check_empty >> log_empty
-    check_empty >> processing_group
+wait_for_file >> check_empty >> [log_empty, processing_group]

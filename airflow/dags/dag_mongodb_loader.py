@@ -1,34 +1,36 @@
+import logging
 import pandas as pd
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.python import PythonOperator
-from airflow.datasets import Dataset
+from airflow.decorators import dag, task
 from airflow.providers.mongo.hooks.mongo import MongoHook
+from config import PROCESSED_FILE_PATH, processed_dataset
 
-PROCESSED_FILE_PATH = '/opt/airflow/data/processed_data.csv'
-processed_dataset = Dataset(f"file://{PROCESSED_FILE_PATH}")
+log = logging.getLogger(__name__)
 
-def load_to_mongo_func():
-    hook = MongoHook(mongo_conn_id='mongo_default')
-    client = hook.get_conn()
-    db = client.innowise_db
-    collection = db.airflow_data
-    
-    df = pd.read_csv(PROCESSED_FILE_PATH)
-    records = df.to_dict(orient='records')
-    
-    if records:
-        collection.insert_many(records)
-        print(f"{len(records)} ta yozuv MongoDB ga muvaffaqiyatli yuklandi.")
-
-with DAG(
+@dag(
     dag_id='2_load_to_mongodb_dag',
-    start_date=datetime(2023, 1, 1),
+    start_date=datetime(2026, 1, 1),
     schedule=[processed_dataset],
     catchup=False
-) as dag:
+)
+def load_to_mongodb_dag():
 
-    load_to_mongo = PythonOperator(
-        task_id='load_to_mongo',
-        python_callable=load_to_mongo_func
-    )
+    @task()
+    def load_to_mongo():
+        hook = MongoHook(mongo_conn_id='mongo_default')
+        client = hook.get_conn()
+        db = client.innowise_db
+        collection = db.airflow_data
+
+        df = pd.read_csv(PROCESSED_FILE_PATH)
+        records = df.to_dict(orient='records')
+
+        if records:
+            collection.insert_many(records)
+            log.info("%d records successfully loaded into MongoDB.", len(records))
+        else:
+            log.info("No records found to load.")
+
+    load_to_mongo()
+
+load_to_mongodb_dag()
