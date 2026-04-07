@@ -32,6 +32,6 @@ The pipeline is designed with 3 distinct layers to ensure data quality and trace
 
 ## Result images
 
-![Airflow dag](images\image1.png)
+![Airflow dag](images/image1.png)
 
-![SQL Execution](images\image.png)
+![SQL Execution](images/image.png)
