@@ -1,4 +1,4 @@
-# ✈️ Airline ETL Pipeline: Snowflake & Apache Airflow
+# Airline ETL Pipeline: Snowflake & Apache Airflow
 
 ## Project Overview
 This project implements an automated, robust ETL (Extract, Transform, Load) pipeline using **Apache Airflow** (via Astro CLI) and **Snowflake**. It processes raw airline flight data, cleanses it, and aggregates it into business-ready metrics using the Medallion Data Architecture (Bronze, Silver, Gold).
