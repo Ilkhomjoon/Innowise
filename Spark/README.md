@@ -17,8 +17,8 @@
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
-cd YOUR_REPO_NAME
+git clone https://github.com/Ilkhomjoon/Innowise.git
+cd Innowise
 ```
 
 ### 2. Configure Database Credentials
